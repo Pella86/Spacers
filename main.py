@@ -49,16 +49,24 @@ class Planet(pygame.sprite.Sprite):
     def __init__(self, radius, position, color, background=(0, 0, 0, 0)):
         super().__init__()
         
+        self.radius = radius
+        self.mass = 10000
+        
         self.image = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
         self.image.fill(background) 
         
         pygame.draw.circle(self.image, color, [radius, radius], radius)
+        
+        self.mask = pygame.mask.from_surface(self.image)
         
         self.rect = self.image.get_rect(center=position)
         
     
     def blit(self, surface):
         surface.blit(self.image, self.rect)
+        
+    def get_pos(self):
+        return pygame.Vector2(self.rect.center)
         
         
                 
@@ -88,7 +96,8 @@ class Spaceship(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         
-        self.radius = 50
+        self.radius = 30
+        self.mass = 1
         self.center = pygame.Vector2(self.radius, self.radius)
         self.size = pygame.Vector2(self.radius*2, self.radius*2)
         color = "blue"
@@ -99,12 +108,16 @@ class Spaceship(pygame.sprite.Sprite):
         
         # accelleration
         self.thrust_force = 1
-        self.force = 0
+        self.force = pygame.Vector2(0, 0)
         
         # image stuff
         self.image = pygame.Surface(self.size, pygame.SRCALPHA)
         
+        
+        
         pygame.draw.circle(self.image, color, self.center, self.radius)
+        
+        self.mask = pygame.mask.from_surface(self.image)
         
         self.original_image = self.image.copy()
         
@@ -127,26 +140,27 @@ class Spaceship(pygame.sprite.Sprite):
 
         self.image.blit(dir_image, dir_rect)  
         
-    def borders(self, screen):
-        print(self.rect.y, self.rect.y > screen.get_height())
+    def reset_force(self):
+        self.force = pygame.Vector2(0, 0)
         
+    def borders(self, screen):
         pos = pygame.Vector2(self.rect.center)
         
         if pos.x - self.radius < 0:
             self.rect.center = (self.radius, pos.y)
-            self.force = 0
+            self.reset_force()
         
         if pos.x > screen.get_width() - self.radius:
             self.rect.center =  (screen.get_width() - self.radius, pos.y)
-            self.force = 0
+            self.reset_force()
         
         if pos.y - self.radius < 0:
             self.rect.center = (pos.x, self.radius)
-            self.force = 0
+            self.reset_force()
          
         if pos.y > screen.get_height() - self.radius:
             self.rect.center = (pos.x, screen.get_height() - self.radius)
-            self.force = 0
+            self.reset_force()
             
     
     def change_dir(self):
@@ -158,54 +172,39 @@ class Spaceship(pygame.sprite.Sprite):
             self.direction = self.direction.rotate(+10) 
             self.draw_dir()  
    
-    def move(self):
-        mass = 1
+   
+    def calc_forces(self, planet_list):
+        for planet in planet_list:
+            d = (planet.get_pos() - self.get_pos()).magnitude()
+            g = 1
             
-        acceleration = self.force * mass
+            print("distance to planet", d)
+            
+            force_dir = planet.get_pos() - self.get_pos()
+            force_dir.normalize_ip()
+            
+            self.force += force_dir * (g * (planet.mass * self.mass) / d**2)
+        
+        print("force on the spaceship:", self.force)
+        
+        
+    def move(self):
+        
+            
+        acceleration = self.force
         dt = 1
-        delta_pos = self.direction * (acceleration * (dt ** 2))
+        delta_pos = (acceleration * (dt ** 2))
             
             
         self.rect.center += delta_pos
              
         if pygame.key.get_pressed()[pygame.K_w]:
-            self.force += self.thrust_force
+            self.force += self.thrust_force * self.direction
+    
+    def get_pos(self):
+        return pygame.Vector2(self.rect.center)
 
                   
-'''
-def test_spaceship(screen):
-    sp_spaceship = pygame.sprite.Group()
-    sp_spaceship.add(Spaceship())
-    
-    sp_spaceship.draw(screen)
-
-    
-    
-    # draw the space ship image
-    spaceship_image = pygame.Surface(spaceship_size, pygame.SRCALPHA)
-    spaceship_image.fill((10, 0, 0, 10))
-    
-    
-    pygame.draw.circle(spaceship_image, spaceship_color, spaceship_center, spaceship_radius)
-    
-
-    
-    # draw the direction
-    dir_image = pygame.Surface(spaceship_size, pygame.SRCALPHA)
-    start_pos = spaceship_center
-    end_pos = spaceship_center + spaceship_dir * spaceship_radius
-    pygame.draw.line(dir_image, "green", start_pos, end_pos)
-    dir_rect = dir_image.get_rect(topleft=(0,0))
-    
-    spaceship_image.blit(dir_image, dir_rect)
-    
-    if pygame.key.get_pressed()[pygame.K_a]:
-        print("pressed a")        
-        
-        
-
-    screen.blit(spaceship_image, spaceship_image.get_rect(center=spaceship_position))    
-'''
 
 def test_spaceship(screen, spaceship):
     spaceship.change_dir()
@@ -217,7 +216,69 @@ def test_spaceship(screen, spaceship):
     
     sp_spaceship.draw(screen)    
     
+
+def test_spaceship_planet_init(game_state):
+    game_state.spaceship = Spaceship()
     
+    game_state.planet_list = []
+    
+    game_state.planet_list.append(Planet(100, (320, 110), (255, 255, 0)))
+    game_state.planet_list.append(Planet(200, (800, 400), (255, 0, 255)))
+    game_state.sp_planets = pygame.sprite.Group()
+    for planet in game_state.planet_list:
+        game_state.sp_planets.add(planet)
+
+    game_state.sp_spaceship = pygame.sprite.Group()
+    game_state.sp_spaceship.add(game_state.spaceship)
+
+def test_spaceship_planet(screen, game_state):
+
+    if pygame.sprite.spritecollide(game_state.spaceship, game_state.sp_planets, False):
+        print("collision detected")
+        
+        spaceship = game_state.spaceship
+        planets = pygame.sprite.spritecollide(spaceship, game_state.sp_planets, False, pygame.sprite.collide_mask)
+        if planets:
+            print("sprite collision")
+            for planet in planets:
+                
+                # take the position of the planet
+                planet_pos = planet.get_pos()
+                
+                # take the position of the spaceship
+                spaceship_pos = spaceship.get_pos()
+                
+                # calculate the vector
+                outward_vec = spaceship_pos - planet_pos
+                
+                if outward_vec == pygame.Vector2(0, 0):
+                    outward_vec = pygame.Vector(1, 0)
+                
+                
+                outward_vec.normalize_ip()
+                
+                
+                spaceship.rect.center = planet_pos + outward_vec * (spaceship.radius + planet.radius + 2)
+                
+                spaceship.reset_force()
+                
+                print("moving space ship to:", game_state.spaceship.rect.center)
+                
+                
+                
+                
+    game_state.spaceship.change_dir()
+    
+    game_state.spaceship.calc_forces(game_state.planet_list)
+    game_state.spaceship.move()
+    game_state.spaceship.borders(screen)            
+        
+    
+    # draw planets
+    game_state.sp_planets.draw(screen)
+    
+    # draw the spaceship
+    game_state.sp_spaceship.draw(screen)            
     
     
     
@@ -232,13 +293,18 @@ class GameState:
     NEW_GAME = 1
     TEST_PLANET = 2
     TEST_SPACESHIP = 3
+    TEST_SPACEPLANET = 4
     
     
 
     def __init__(self):
-        self.state = self.TEST_SPACESHIP
+        self.state = self.TEST_SPACEPLANET
         
-        self.spaceship = Spaceship()
+        if self.state == self.TEST_SPACESHIP:
+            self.spaceship = Spaceship()
+        
+        if self.state == self.TEST_SPACEPLANET:
+            test_spaceship_planet_init(self)
         
     
     def run(self, screen):
@@ -253,6 +319,9 @@ class GameState:
         
         if self.state == self.TEST_SPACESHIP:
             test_spaceship(screen, self.spaceship)
+        
+        if self.state == self.TEST_SPACEPLANET:
+            test_spaceship_planet(screen, self)
             
 
 def main():
