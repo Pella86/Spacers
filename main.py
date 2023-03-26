@@ -2,18 +2,9 @@ import pygame
 
 import TitleScene
 import TestPlanet
+import TestSpaceship
 
 SCREEN_SIZE = (1240, 640)
-
-def test_spaceship(screen, spaceship):
-    spaceship.change_dir()
-    spaceship.move()
-    spaceship.borders(screen)
-    
-    sp_spaceship = pygame.sprite.Group()
-    sp_spaceship.add(spaceship)
-    
-    sp_spaceship.draw(screen)    
     
 
 def test_spaceship_planet_init(game_state):
@@ -98,7 +89,7 @@ class GameState:
     
 
     def __init__(self, screen):
-        self.state = self.TEST_PLANET
+        self.state = self.TEST_SPACESHIP
         
         if self.state == self.TITLE_SCREEN:
             self.title_screen = TitleScene.TitleScene(screen)
@@ -107,7 +98,7 @@ class GameState:
             self.test_planet = TestPlanet.TestPlanet(screen)
         
         if self.state == self.TEST_SPACESHIP:
-            self.spaceship = Spaceship()
+            self.test_spaceship = TestSpaceship.TestSpaceship(screen)
         
         if self.state == self.TEST_SPACEPLANET:
             test_spaceship_planet_init(self)
@@ -124,7 +115,7 @@ class GameState:
             self.test_planet.run()
         
         if self.state == self.TEST_SPACESHIP:
-            test_spaceship(screen, self.spaceship)
+            self.test_spaceship.run()
         
         if self.state == self.TEST_SPACEPLANET:
             test_spaceship_planet(screen, self)

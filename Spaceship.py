@@ -2,7 +2,7 @@ import pygame
 
 class Spaceship(pygame.sprite.Sprite):
 
-    def __init__(self):
+    def __init__(self, initial_position):
         super().__init__()
         
         self.radius = 30
@@ -13,7 +13,7 @@ class Spaceship(pygame.sprite.Sprite):
         
         self.direction = pygame.Vector2(0, 1)
         
-        position = pygame.Vector2(SCREEN_SIZE) / 2
+        position = initial_position
         
         # accelleration
         self.thrust_force = 1
