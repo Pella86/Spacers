@@ -5,11 +5,16 @@ class Spaceship(pygame.sprite.Sprite):
     def __init__(self, initial_position):
         super().__init__()
         
+
+        
         self.radius = 30
         self.mass = 1
         self.center = pygame.Vector2(self.radius, self.radius)
         self.size = pygame.Vector2(self.radius*2, self.radius*2)
         color = "blue"
+
+        loaded_image = pygame.image.load("./images/spaceship_images/spaceship_image.png")
+        loaded_image = pygame.transform.scale(loaded_image, self.size)
         
         self.direction = pygame.Vector2(0, 1)
         
@@ -22,13 +27,17 @@ class Spaceship(pygame.sprite.Sprite):
         # image stuff
         self.image = pygame.Surface(self.size, pygame.SRCALPHA)
         
+        self.image.blit(loaded_image, (0, 0))
         
         
-        pygame.draw.circle(self.image, color, self.center, self.radius)
+        
+        #pygame.draw.circle(self.image, color, self.center, self.radius)
         
         self.mask = pygame.mask.from_surface(self.image)
         
-        self.original_image = self.image.copy()
+        #self.original_image = self.image.copy()
+        
+        self.original_image = loaded_image.copy()
         
         self.image.fill((10, 0, 0, 10))
         
@@ -37,8 +46,21 @@ class Spaceship(pygame.sprite.Sprite):
         self.draw_dir()
     
     
+    
     def draw_dir(self):
-        self.image.blit(self.original_image, self.original_image.get_rect(topleft=(0, 0)))
+        loaded_image_dir = pygame.Vector2(0, -1)
+        angle = -loaded_image_dir.angle_to(self.direction)
+        
+        rotated_image = pygame.transform.rotate(self.original_image, angle)
+        image_center = pygame.Vector2(self.image.get_size()) / 2
+        rotated_image_rect = rotated_image.get_rect(center=image_center)
+        
+        self.image.fill((0, 0, 0, 0))
+        
+        self.image.blit(rotated_image, rotated_image_rect)
+        
+        
+        #self.image.blit(self.original_image, self.original_image.get_rect(topleft=(0, 0)))
         
         dir_image = pygame.Surface(self.size, pygame.SRCALPHA)
         start_pos = self.center

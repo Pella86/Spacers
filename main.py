@@ -19,22 +19,18 @@ class GameState:
     TEST_SPACESHIP = 3
     TEST_SPACEPLANET = 4
     
-    
-
     def __init__(self, screen):
         self.state = self.TEST_SPACEPLANET
+        
+        self.scene = {}
+        
+        self.scene[self.TEST_PLANET] = TestPlanet.TestPlanet(screen)
+        self.scene[self.TEST_SPACESHIP] = TestSpaceship.TestSpaceship(screen)
+        self.scene[self.TEST_SPACEPLANET] = TestSpaceshipPlanet.TestSpaceshipPlanet(screen)
         
         if self.state == self.TITLE_SCREEN:
             self.title_screen = TitleScene.TitleScene(screen)
         
-        if self.state == self.TEST_PLANET:
-            self.test_planet = TestPlanet.TestPlanet(screen)
-        
-        if self.state == self.TEST_SPACESHIP:
-            self.test_spaceship = TestSpaceship.TestSpaceship(screen)
-        
-        if self.state == self.TEST_SPACEPLANET:
-            self.scene = TestSpaceshipPlanet.TestSpaceshipPlanet(screen)
         
     
     def run(self, screen):
@@ -44,15 +40,7 @@ class GameState:
         if self.state == self.NEW_GAME:
             pass
             
-        if self.state == self.TEST_PLANET:
-            self.test_planet.run()
-        
-        if self.state == self.TEST_SPACESHIP:
-            self.test_spaceship.run()
-        
-        if self.state == self.TEST_SPACEPLANET:
-            self.scene.run()
-            
+        self.scene[self.state].run()
 
 def main():
     
@@ -82,7 +70,7 @@ def main():
 
         game_state.run(screen)
         
-        pygame.display.flip()
+        pygame.display.update()
          
          
     

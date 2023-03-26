@@ -21,10 +21,15 @@ class TestSpaceshipPlanet:
             self.sp_planets.add(planet)
 
         self.sp_spaceship = pygame.sprite.Group()
-        self.sp_spaceship.add(self.spaceship)     
+        self.sp_spaceship.add(self.spaceship)   
+        
+        loaded_background = pygame.image.load("./images/background_images/background_image.png")
+        self.background = pygame.transform.scale(loaded_background, screen.get_size())
     
     
     def run(self):
+    
+        self.screen.blit(self.background, (0, 0))
  
         if pygame.sprite.spritecollide(self.spaceship, self.sp_planets, False):
             print("Rectangle collision detected")
@@ -51,7 +56,7 @@ class TestSpaceshipPlanet:
                     outward_vec.normalize_ip()
                     
                     
-                    self.spaceship.rect.center = planet_pos + outward_vec * (self.spaceship.radius + planet.radius + 2)
+                    self.spaceship.rect.center = planet_pos + outward_vec * (self.spaceship.radius + planet.radius + 7)
                     
                     self.spaceship.reset_force()
                     
