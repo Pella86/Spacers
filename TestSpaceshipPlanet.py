@@ -30,7 +30,20 @@ class TestSpaceshipPlanet:
     def run(self):
     
         self.screen.blit(self.background, (0, 0))
- 
+        
+        planet = self.planet_list[1]
+        
+
+        spaceship_tl = pygame.Vector2(self.spaceship.rect.topleft)
+        planet_tl = pygame.Vector2(planet.rect.topleft)
+        
+        offset = planet_tl - spaceship_tl
+        
+        overlap = self.spaceship.mask.overlap(planet.mask, offset)
+        print(overlap)
+        input()
+        
+        '''
         if pygame.sprite.spritecollide(self.spaceship, self.sp_planets, False):
             print("Rectangle collision detected")
             
@@ -38,30 +51,44 @@ class TestSpaceshipPlanet:
             
             if planets:
                 print("sprite collision")
+                
+                
                 for planet in planets:
                     
-                    # take the position of the planet
-                    planet_pos = planet.get_pos()
+                
+                    new_dir = self.spaceship.direction.rotate(180)
                     
-                    # take the position of the spaceship
-                    spaceship_pos = self.spaceship.get_pos()
+                    temp_group = pygame.sprite.Group()
+                    temp_group.add(planet)
+                    while pygame.sprite.spritecollide(self.spaceship, temp_group, False, pygame.sprite.collide_mask):
+                        print("moving spaceship")
+            
                     
-                    # calculate the vector
-                    outward_vec = spaceship_pos - planet_pos
-                    
-                    if outward_vec == pygame.Vector2(0, 0):
-                        outward_vec = pygame.Vector(1, 0)
-                    
-                    
-                    outward_vec.normalize_ip()
+                        self.spaceship.rect.center += new_dir
                     
                     
-                    self.spaceship.rect.center = planet_pos + outward_vec * (self.spaceship.radius + planet.radius + 7)
+                    ## take the position of the planet
+                    #planet_pos = planet.get_pos()
+                    #
+                    ## take the position of the spaceship
+                    #spaceship_pos = self.spaceship.get_pos()
+                    # 
+                    ## calculate the vector
+                    #outward_vec = spaceship_pos - planet_pos
+                    #
+                    #if outward_vec == pygame.Vector2(0, 0):
+                    #    outward_vec = pygame.Vector(1, 0)
+                    #
+                    
+                    #outward_vec.normalize_ip()
+                    
+                    
+                    #self.spaceship.rect.center = planet_pos + outward_vec * (self.spaceship.radius + planet.radius + 7)
                     
                     self.spaceship.reset_force()
                     
                     print("moving space ship to:", self.spaceship.rect.center)
-                    
+        '''             
                     
                     
                     
